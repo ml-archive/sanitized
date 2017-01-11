@@ -1,7 +1,7 @@
 import JSON
 
 extension JSON {
-    func permit(_ keys: [String]) -> JSON {
+    public func permit(_ keys: [String]) -> JSON {
         guard var object = node.object as? [String:Node] else { return self }
         
         object.forEach { key,_ in
