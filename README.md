@@ -9,7 +9,7 @@ Safely extract Vapor models from requests.
 ## Integration
 Update your `Package.swift` file.
 ```swift
-.Package(url: "https://github.com/nodes-vapor/sanitized", majorVersion: 0)
+.Package(url: "https://github.com/nodes-vapor/sanitized.git", majorVersion: 0)
 ```
 
 ## Getting started 🚀
