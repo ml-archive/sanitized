@@ -24,6 +24,23 @@ class SanitizedTests: XCTestCase {
         }
     }
     
+    func testBasicFailed() {
+        let request = buildInvalidRequest()
+        expect(toThrow: Abort.badRequest) {
+            let _: TestModel = try request.extractModel()
+        }
+    }
+    
+    func testUpdatedError() {
+        let request = buildRequest(body: [
+            "email": "test@tested.com"
+        ])
+        
+        expect(toThrow: Abort.custom(status: .badRequest, message: "Username not provided.")) {
+            let _: TestModel = try request.extractModel()
+        }
+    }
+    
     func testPermitted() {
         let json = JSON([
             "id": 1,
@@ -64,6 +81,13 @@ extension SanitizedTests {
             body: .data(body)
         )
     }
+    
+    func buildInvalidRequest() -> Request {
+        return try! Request(
+            method: .post,
+            uri: "/test"
+        )
+    }
 }
 
 struct TestModel: Model, Sanitizable {
@@ -86,4 +110,16 @@ struct TestModel: Model, Sanitizable {
     
     static func prepare(_ database: Database) throws {}
     static func revert(_ database: Database) throws {}
+}
+
+extension TestModel {
+    static func updateThrownError(_ error: Error) -> AbortError {
+        return Abort.custom(status: .badRequest, message: "Username not provided.")
+    }
+}
+
+extension Abort: Equatable {
+    static public func ==(lhs: Abort, rhs: Abort) -> Bool {
+        return lhs.code == rhs.code && lhs.message == rhs.message
+    }
 }
