@@ -5,8 +5,13 @@ import Vapor
 @testable import Sanitized
 
 class SanitizedTests: XCTestCase {
-    static let allTests = [
-        ("testBasic", testBasic)
+    static var allTests = [
+        ("testBasic", testBasic),
+        ("testBasicFailed", testBasicFailed),
+        ("testPreValidateError", testPreValidateError),
+        ("testPostValidateError", testPostValidateError),
+        ("testPermitted", testPermitted),
+        ("testEmptyPermitted", testEmptyPermitted),
     ]
     
     func testBasic() {
