@@ -31,12 +31,29 @@ class SanitizedTests: XCTestCase {
         }
     }
     
-    func testUpdatedError() {
+    func testPreValidateError() {
         let request = buildRequest(body: [
             "email": "test@tested.com"
         ])
         
-        expect(toThrow: Abort.custom(status: .badRequest, message: "Username not provided.")) {
+        expect(toThrow: Abort.custom(status: .badRequest, message: "No name provided.")) {
+            let _: TestModel = try request.extractModel()
+        }
+    }
+    
+    func testPostValidateError() {
+        let request = buildRequest(body: [
+            "id": 1,
+            "name": "Brett",
+            "email": "t@t.com"
+        ])
+        
+        let expectedError = Abort.custom(
+            status: .badRequest,
+            message: "Email must be longer than 8 characters."
+        )
+        
+        expect(toThrow: expectedError) {
             let _: TestModel = try request.extractModel()
         }
     }
@@ -115,6 +132,25 @@ struct TestModel: Model, Sanitizable {
 extension TestModel {
     static func updateThrownError(_ error: Error) -> AbortError {
         return Abort.custom(status: .badRequest, message: "Username not provided.")
+    }
+    
+    static func preValidate(data: JSON) throws {
+        guard data["name"]?.string != nil else {
+            throw Abort.custom(status: .badRequest, message: "No name provided.")
+        }
+        
+        guard data["email"]?.string != nil else {
+            throw Abort.custom(status: .badRequest, message: "No email provided.")
+        }
+    }
+    
+    func postValidate() throws {
+        guard email.count > 8 else {
+            throw Abort.custom(
+                status: .badRequest,
+                message: "Email must be longer than 8 characters."
+            )
+        }
     }
 }
 
