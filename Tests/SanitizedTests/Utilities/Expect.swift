@@ -10,7 +10,7 @@ func expect<E: Error, ReturnType>(
         let _ = try closure()
         XCTFail("should have thrown", file: file, line: line)
     } catch let error as E {
-        XCTAssertEqual(error, expectedError)
+        XCTAssertEqual(error, expectedError, file: file, line: line)
     } catch {
         XCTFail(
             "expected type \(type(of: expectedError)) got \(type(of: error))",

@@ -1,6 +1,7 @@
 import XCTest
-@testable import sanitizedTests
+
+@testable import SanitizedTests
 
 XCTMain([
-     testCase(sanitizedTests.allTests),
+    testCase(SanitizedTests.allTests),
 ])
