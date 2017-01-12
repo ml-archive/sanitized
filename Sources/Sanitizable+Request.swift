@@ -16,11 +16,18 @@ extension Request {
         }
         
         let sanitized = json.permit(M.permitted)
+        
+        try M.preValidate(data: sanitized)
+        
+        let model: M
         do {
-            return try M(node: sanitized)
+            model = try M(node: sanitized)
         } catch {
             let error = M.updateThrownError(error)
             throw error
         }
+        
+        try model.postValidate()
+        return model
     }
 }
