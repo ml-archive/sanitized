@@ -88,7 +88,7 @@ func postValidate() throws {
 ```
 
 ## Overriding error thrown on failed `init` 🔨
-The error thrown by a failed `Node.extract` will be turned into a `505 Internal Server Error` if not caught and changed before being caught by Vapor's AbortMiddleware. By default, this package will catch that error and convert it into a `400 Bad Request`. If you wish to disable this for development environments or throw your own error, you can override the following default implementation:
+The error thrown by a failed `Node.extract` will be turned into a `500 Internal Server Error` if not caught and changed before being caught by Vapor's AbortMiddleware. By default, this package will catch that error and convert it into a `400 Bad Request`. If you wish to disable this for development environments or throw your own error, you can override the following default implementation:
 ```swift
 static func updateThrownError(_ error: Error) -> AbortError {
     // recreates the default behavior of `AbortMiddleware`.
