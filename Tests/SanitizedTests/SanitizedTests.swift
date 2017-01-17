@@ -88,6 +88,55 @@ class SanitizedTests: XCTestCase {
         XCTAssertNil(result["name"])
         XCTAssertNil(result["email"])
     }
+    
+    func testPatchBasic() {
+        let model = try! TestModel(node: [
+            "id": 15,
+            "name": "Rylo Ken",
+            "email": "test@tested.com"
+        ])
+        
+        let request = buildRequest(body: [
+            "id": 11, // this should be sanitized
+            "email": "rylo_ken@tested.com"
+        ])
+        
+        expectNoThrow() {
+            let model = try request.patchModel(model)
+            XCTAssertEqual(model.id?.int, 15)
+            XCTAssertEqual(model.name, "Rylo Ken")
+            XCTAssertEqual(model.email, "rylo_ken@tested.com")
+        }
+    }
+    
+    func testPatchFailed() {
+        let model = try! TestModel(node: [
+            "id": 15,
+            "name": "Rylo Ken",
+            "email": "test@tested.com"
+        ])
+        
+        let request = buildInvalidRequest()
+        
+        expect(toThrow: Abort.badRequest) {
+            let _: TestModel = try request.patchModel(model)
+        }
+    }
+    
+    func testPatchById() {
+        Database.default = Database(TestDriver())
+        let request = buildRequest(body: [
+            "id": 11, // this should be sanitized
+            "email": "jimmy_jim@tested.com"
+        ])
+        
+        expectNoThrow() {
+            let model: TestModel = try request.patchModel(id: 1)
+            XCTAssertEqual(model.id?.int, 1, "Id shouldn't have changed")
+            XCTAssertEqual(model.name, "Jimmy", "Name shouldn't have changed")
+            XCTAssertEqual(model.email, "jimmy_jim@tested.com", "email should've changed")
+        }
+    }
 }
 
 extension SanitizedTests {
@@ -127,7 +176,11 @@ struct TestModel: Model, Sanitizable {
     }
     
     func makeNode(context: Context) throws -> Node {
-        return .null
+        return try Node(node: [
+            "id": id,
+            "name": name,
+            "email": "email"
+        ])
     }
     
     static func prepare(_ database: Database) throws {}

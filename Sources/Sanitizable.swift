@@ -29,3 +29,14 @@ extension Sanitizable {
         
     }
 }
+
+public enum CredentialScope {
+    case none
+    case user
+    case otherUser
+    case admin
+}
+
+extension CredentialScope: Context {
+    
+}
