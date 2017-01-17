@@ -64,6 +64,7 @@ extension Request {
     ///
     /// - Returns: The updated `Model`.
     public func patchModel<M: Model>(_ model: M) throws -> M where M: Sanitizable {
+        //consider making multiple lines
         guard let requestJSON = self.json?.permit(M.permitted).makeNode().nodeObject else {
             throw Abort.badRequest
         }
