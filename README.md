@@ -49,14 +49,32 @@ Now that you have a conforming model, you can safely extract it from a `Request`
 ### Main.swift
 ```swift
 drop.post("users") { req in 
-    var user: User = try request.extractModel()
+    var user: User = try req.extractModel()
     print(user.id == nil) // prints `true`
     try user.save()
     return user
 }
 ```
 
-## Validation 👌
+## Updating/patching existing models 🖇
+Just like model extraction, securely updating a model with data from a request is a trivial process. 
+```swift
+drop.post("users", User.self) { req, user in
+    var updatedUser = try req.patchModel(user)
+    try updatedUser.save()
+}
+```
+
+### Updating model with Id
+If you don't have an instance of the model you wish to update you can have `Sanitize` fetch and update the model for you.
+```swift
+drop.post("users", Int.self) { req, userId in
+    var user: User = try req.patchModel(userId)
+    try user.save()
+}
+```
+
+## Validation ✅
 This package doesn't specifically provide any validation tools, but it is capable of running your validation suite for you. Thusly, simplifying the logic in your controllers. Sanitized has two ways of accomplishing this: pre and post validation.
 
 ### Pre-init validation
@@ -66,7 +84,7 @@ Create a `preValidation` check by overriding the default implementation in your 
 ```swift
 static func preValidate(data: JSON) throws {
     // we only want to ensure that `name` exists/
-    guard data["name"]?.string != nil else {
+    guard data["name"] != nil else {
       throw MyError.invalidRequest("Name not provided.")
     }
 }
