@@ -13,7 +13,10 @@ class SanitizedTests: XCTestCase {
         ("testPermitted", testPermitted),
         ("testEmptyPermitted", testEmptyPermitted),
     ]
-    
+
+
+    // MARK: - Extraction.
+
     func testBasic() {
         let request = buildRequest(body: [
             "id": 1,
@@ -28,14 +31,71 @@ class SanitizedTests: XCTestCase {
             XCTAssertEqual(model.email, "test@tested.com")
         }
     }
-    
+
+
     func testBasicFailed() {
         let request = buildInvalidRequest()
         expect(toThrow: Abort.badRequest) {
             let _: TestModel = try request.extractModel()
         }
     }
-    
+
+
+    // MARK: - Injection.
+
+    func testInjectingNewKeys() {
+        let request = buildRequest(body: [
+            "id": 1,
+            "name": "Brett"
+        ])
+        
+        expectNoThrow() {
+            let model: TestModel = try request.extractModel(
+                injecting: ["email": "test@tested.com"]
+            )
+            XCTAssertNil(model.id)
+            XCTAssertEqual(model.name, "Brett")
+            XCTAssertEqual(model.email, "test@tested.com")
+        }
+    }
+
+    func testOverridingKeys() {
+        let request = buildRequest(body: [
+            "id": 1,
+            "name": "Brett",
+            "email": "test@tested.com"
+        ])
+        
+        expectNoThrow() {
+            let model: TestModel = try request.extractModel(
+                injecting: ["email": "test@doubletested.com"]
+            )
+            XCTAssertNil(model.id)
+            XCTAssertEqual(model.name, "Brett")
+            XCTAssertEqual(model.email, "test@doubletested.com")
+        }
+    }
+
+    func testInjectingSanitizedKeys() {
+        let request = buildRequest(body: [
+            "id": 1,
+            "name": "Brett",
+            "email": "test@tested.com"
+        ])
+        
+        expectNoThrow() {
+            let model: TestModel = try request.extractModel(
+                injecting: ["id": 1337]
+            )
+            XCTAssertNil(model.id)
+            XCTAssertEqual(model.name, "Brett")
+            XCTAssertEqual(model.email, "test@tested.com")
+        }
+    }
+
+
+    // MARK: - Validation.
+
     func testPreValidateError() {
         let request = buildRequest(body: [
             "email": "test@tested.com"
@@ -62,7 +122,10 @@ class SanitizedTests: XCTestCase {
             let _: TestModel = try request.extractModel()
         }
     }
-    
+
+
+    // MARK: - Permitted fields.
+
     func testPermitted() {
         let json = JSON([
             "id": 1,
@@ -88,7 +151,10 @@ class SanitizedTests: XCTestCase {
         XCTAssertNil(result["name"])
         XCTAssertNil(result["email"])
     }
-    
+
+
+    // MARK: - Patching.
+
     func testPatchBasic() {
         let model = try! TestModel(node: [
             "id": 15,
