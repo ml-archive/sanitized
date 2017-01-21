@@ -9,13 +9,13 @@ extension Request {
     ///     - badRequest: Thrown when the request doesn't have a JSON body.
     ///     - updateErrorThrown: `Sanitizable` models have the ability to override
     ///         the error thrown when a model fails to instantiate.
-    /// 
+    ///
     /// - Returns: The extracted, sanitized `Model`.
     public func extractModel<M: Model>() throws -> M where M: Sanitizable {
         return try extractModel(injecting: .null)
     }
-
-
+    
+    
     /// Extracts a `Model` from the Request's JSON, first by adding/overriding
     /// the given values and next stripping sensitive fields.
     ///
@@ -29,14 +29,12 @@ extension Request {
         guard let json = self.json else {
             throw Abort.badRequest
         }
-
-        var node = json.makeNode()
+        
+        var sanitized = json.permit(M.permitted)
         values.nodeObject?.forEach { key, value in
-            node[key] = value
+            sanitized[key] = JSON(value)
         }
-
-        let sanitized = try JSON(node: node).permit(M.permitted)
-
+        
         try M.preValidate(data: sanitized)
         
         let model: M

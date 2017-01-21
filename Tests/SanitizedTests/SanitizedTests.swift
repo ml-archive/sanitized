@@ -87,7 +87,7 @@ class SanitizedTests: XCTestCase {
             let model: TestModel = try request.extractModel(
                 injecting: ["id": 1337]
             )
-            XCTAssertNil(model.id)
+            XCTAssertEqual(model.id, 1337)
             XCTAssertEqual(model.name, "Brett")
             XCTAssertEqual(model.email, "test@tested.com")
         }
