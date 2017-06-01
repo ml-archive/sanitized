@@ -1,6 +1,7 @@
 import HTTP
 import Node
 import Vapor
+import FluentProvider
 
 extension Request {
     /// Extracts a `Model` from the Request's JSON, first stripping sensitive fields.
@@ -31,7 +32,7 @@ extension Request {
         }
         
         var sanitized = json.permit(M.permitted)
-        values.nodeObject?.forEach { key, value in
+        values.object?.forEach { key, value in
             sanitized[key] = JSON(value)
         }
         
@@ -39,7 +40,7 @@ extension Request {
         
         let model: M
         do {
-            model = try M(node: sanitized)
+            model = try M(json: sanitized)
         } catch {
             let error = M.updateThrownError(error)
             throw error
@@ -82,11 +83,11 @@ extension Request {
     /// - Returns: The updated `Model`.
     public func patchModel<M: Model>(_ model: M) throws -> M where M: Sanitizable {
         //consider making multiple lines
-        guard let requestJSON = self.json?.permit(M.permitted).makeNode().nodeObject else {
+        guard let requestJSON = self.json?.permit(M.permitted).object else {
             throw Abort.badRequest
         }
         
-        var modelJSON = try model.makeNode()
+        var modelJSON = try model.makeJSON()
         
         requestJSON.forEach {
             modelJSON[$0.key] = $0.value
@@ -94,7 +95,7 @@ extension Request {
         
         var model: M
         do {
-            model = try M(node: modelJSON)
+            model = try M(json: modelJSON)
         } catch {
             let error = M.updateThrownError(error)
             throw error

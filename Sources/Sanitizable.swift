@@ -1,7 +1,7 @@
 import Vapor
 
 /// A request-extractable `Model`.
-public protocol Sanitizable {
+public protocol Sanitizable: JSONInitializable, JSONRepresentable {
     /// Fields that are permitted to be deserialized from a Request's JSON.
     static var permitted: [String] { get }
     

@@ -1,6 +1,7 @@
 import XCTest
 import HTTP
 import Vapor
+import FluentProvider
 
 @testable import Sanitized
 
@@ -101,7 +102,11 @@ class SanitizedTests: XCTestCase {
             "email": "test@tested.com"
         ])
         
-        expect(toThrow: Abort.custom(status: .badRequest, message: "No name provided.")) {
+        expect(toThrow: Abort(
+            .badRequest,
+            metadata: nil,
+            reason: "No name provided."
+        )) {
             let _: TestModel = try request.extractModel()
         }
     }
@@ -113,9 +118,10 @@ class SanitizedTests: XCTestCase {
             "email": "t@t.com"
         ])
         
-        let expectedError = Abort.custom(
-            status: .badRequest,
-            message: "Email must be longer than 8 characters."
+        let expectedError = Abort(
+            .badRequest,
+            metadata: nil,
+            reason: "Email must be longer than 8 characters."
         )
         
         expect(toThrow: expectedError) {
@@ -145,7 +151,7 @@ class SanitizedTests: XCTestCase {
             "name": "Brett",
             "email": "test@tested.com"
         ])
-        
+
         let result = json.permit([])
         XCTAssertNil(result["id"])
         XCTAssertNil(result["name"])
@@ -156,11 +162,11 @@ class SanitizedTests: XCTestCase {
     // MARK: - Patching.
 
     func testPatchBasic() {
-        let model = try! TestModel(node: [
+        let model = try! TestModel(json: JSON([
             "id": 15,
             "name": "Rylo Ken",
             "email": "test@tested.com"
-        ])
+        ]))
         
         let request = buildRequest(body: [
             "id": 11, // this should be sanitized
@@ -176,11 +182,11 @@ class SanitizedTests: XCTestCase {
     }
     
     func testPatchFailed() {
-        let model = try! TestModel(node: [
+        let model = try! TestModel(json: JSON([
             "id": 15,
             "name": "Rylo Ken",
             "email": "test@tested.com"
-        ])
+        ]))
         
         let request = buildInvalidRequest()
         
@@ -209,7 +215,7 @@ extension SanitizedTests {
     func buildRequest(body: Node) -> Request {
         let body = try! JSON(node: body).makeBytes()
         
-        return try! Request(
+        return Request(
             method: .post,
             uri: "/test",
             headers: [
@@ -220,33 +226,45 @@ extension SanitizedTests {
     }
     
     func buildInvalidRequest() -> Request {
-        return try! Request(
+        return Request(
             method: .post,
             uri: "/test"
         )
     }
 }
 
-struct TestModel: Model, Sanitizable {
+final class TestModel: Model, Sanitizable {
     var id: Node?
-    
     var name: String
     var email: String
-    
+    var storage: Storage
+
     static var permitted = ["name", "email"]
-    
-    init(node: Node, in context: Context) throws {
-        id = node["id"]
-        name = try node.extract("name")
-        email = try node.extract("email")
+
+    required init(json: JSON) throws {
+        id = try json.get("id")
+        name = try json.get("name")
+        email = try json.get("email")
+        storage = Storage()
     }
-    
-    func makeNode(context: Context) throws -> Node {
-        return try Node(node: [
-            "id": id,
-            "name": name,
-            "email": "email"
-        ])
+
+    public func makeJSON() -> JSON {
+        return try! JSON (node: [
+                "id": id as Any,
+                "name": name,
+                "email": email
+            ])
+    }
+
+    func makeRow() throws -> Row {
+        return Row()
+    }
+
+    required init(row: Row) throws {
+        id = try row.get("id")
+        name = try row.get("name")
+        email = try row.get("email")
+        storage = Storage()
     }
     
     static func prepare(_ database: Database) throws {}
@@ -255,24 +273,36 @@ struct TestModel: Model, Sanitizable {
 
 extension TestModel {
     static func updateThrownError(_ error: Error) -> AbortError {
-        return Abort.custom(status: .badRequest, message: "Username not provided.")
+        return Abort(
+            .badRequest,
+            metadata: nil,
+            reason: "Username not provided.")
     }
     
     static func preValidate(data: JSON) throws {
         guard data["name"]?.string != nil else {
-            throw Abort.custom(status: .badRequest, message: "No name provided.")
+            throw Abort(
+                .badRequest,
+                metadata: nil,
+                reason: "No name provided."
+            )
         }
         
         guard data["email"]?.string != nil else {
-            throw Abort.custom(status: .badRequest, message: "No email provided.")
+            throw Abort(
+                .badRequest,
+                metadata: nil,
+                reason: "No email provided."
+            )
         }
     }
     
     func postValidate() throws {
-        guard email.count > 8 else {
-            throw Abort.custom(
-                status: .badRequest,
-                message: "Email must be longer than 8 characters."
+        guard email.characters.count > 8 else {
+            throw Abort(
+                .badRequest,
+                metadata: nil,
+                reason: "Email must be longer than 8 characters."
             )
         }
     }
@@ -280,6 +310,6 @@ extension TestModel {
 
 extension Abort: Equatable {
     static public func ==(lhs: Abort, rhs: Abort) -> Bool {
-        return lhs.code == rhs.code && lhs.message == rhs.message
+        return lhs.identifier == rhs.identifier && lhs.reason == rhs.reason
     }
 }
