@@ -215,7 +215,7 @@ extension SanitizedTests {
     func buildRequest(body: Node) -> Request {
         let body = try! JSON(node: body).makeBytes()
         
-        return try! Request(
+        return Request(
             method: .post,
             uri: "/test",
             headers: [
@@ -226,14 +226,14 @@ extension SanitizedTests {
     }
     
     func buildInvalidRequest() -> Request {
-        return try! Request(
+        return Request(
             method: .post,
             uri: "/test"
         )
     }
 }
 
-class TestModel: Model, Sanitizable {
+final class TestModel: Model, Sanitizable {
     var id: Node?
     var name: String
     var email: String
