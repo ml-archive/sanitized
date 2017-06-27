@@ -14,7 +14,7 @@ Safely extract and validate Vapor models from requests.
 
 Update your `Package.swift` file.
 ```swift
-.Package(url: "https://github.com/nodes-vapor/sanitized.git", majorVersion: 0)
+.Package(url: "https://github.com/nodes-vapor/sanitized.git", majorVersion: 1)
 ```
 
 
