@@ -75,6 +75,7 @@ drop.post("users") { req in
 ## Updating/patching existing models 🖇
 
 Just like model extraction, securely updating a model with data from a request is a trivial process. 
+
 ```swift
 drop.post("users", User.self) { req, user in
     var updatedUser = try req.patchModel(user)
@@ -86,6 +87,7 @@ drop.post("users", User.self) { req, user in
 ### Updating model with Id
 
 If you don't have an instance of the model you wish to update you can have `Sanitize` fetch and update the model for you.
+
 ```swift
 drop.post("users", Int.self) { req, userId in
     var user: User = try req.patchModel(userId)
