@@ -102,7 +102,7 @@ This package doesn't specifically provide any validation tools, but it is capabl
 
 ### Pre-init validation
 
-This type of validation is ran before the model is initialized and is checked against the request's JSON. This type of field is useful for when you only want to check if a field exists before continuing.
+This type of validation is run before the model is initialized and is checked against the request's JSON. This type of field is useful for when you only want to check if a field exists before continuing.
 
 Create a `preValidation` check by overriding the default implementation in your `Sanitizable` model.
 ```swift
@@ -116,7 +116,7 @@ static func preValidate(data: JSON) throws {
 
 ### Post-init validation
 
-This type of validation is ran after the model has been initialized is useful for checking the content of fields while using Swift-native types.
+This type of validation is run after the model has been initialized is useful for checking the content of fields while using Swift-native types.
 
 Create a `postValidation` check by overriding the default implementation in your `Sanitizable` model.
 ```swift
