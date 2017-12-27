@@ -148,7 +148,7 @@ static func updateThrownError(_ error: Error) -> AbortError {
 ## 🏆 Credits
 
 This package is developed and maintained by the Vapor team at [Nodes](https://www.nodes.dk).
-The package owner for this project is [Mauran](https://github.com/mauran).
+The package owner for this project is [Brett](https://github.com/brettRToomey).
 
 
 ## 📄 License
